@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# model weights and large binaries
+weights/
+*.task
+*.pt
+*.pth
+*.ckpt
+*.zip
+
+# LaTeX build artefacts
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.toc
+*.fls
+*.fdb_latexmk
+
+# datasets / caches (never redistributed)
+data/
+caches/
+
+# OS
+.DS_Store
+Thumbs.db

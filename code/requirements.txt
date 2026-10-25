@@ -1,0 +1,40 @@
+# =============================================================================
+# Sync-X 依赖清单（云端复现用）
+# -----------------------------------------------------------------------------
+# 说明：
+#   - 生产路径 = prep_*.py（特征抽取）→ train_stage1/2.py（训练）→ evaluate.py（评测）
+#     只需下面 [CORE] 与 [MODELS]；出图(f1~f16)只需 [PLOT]。
+#   - 系统级依赖（必须，非 pip）：ffmpeg（视频抽音频用 subprocess 调用）。
+#     容器/云主机请 `apt-get install -y ffmpeg` 或等价命令，否则 prep 会失败。
+#   - moviepy 仅被【已废弃】的 extract_features.py 用到（该脚本已 hard-block），
+#     生产路径不使用，故未列入必装；如需跑旧脚本再装。
+#   - 【环境版本口径 · 2026-10-19 注】本清单是**早期云端复现快照**
+#     （torch==2.4.1 + cu121）。论文正文报告的**全部最终实验**均在云端 GPU
+#     （单张 RTX 4090D 24GB）上运行，环境为 **PyTorch 2.8.0+cu128 /
+#     torchvision 0.23.0+cu128**（torch↔torchvision 必须同配对，依赖对齐过程
+#     见 result/v1/avhubert_cloud_pitfalls.md「坑9」）。复现最终数字请按该
+#     文档对齐 cu128 组合；本文件下方版本号仅代表早期云端快照，仅作参考。
+#   - torch 此处给的是 CUDA 12.1 wheel（早期云端）。其他 CUDA 版本的云 GPU，
+#     改用对应 index-url 的 wheel 即可，版本号不变。
+# =============================================================================
+
+# ── [CORE] 训练/抽取/评测核心 ──────────────────────────────────────────────
+torch==2.4.1
+--extra-index-url https://download.pytorch.org/whl/cu121
+numpy==1.26.4
+scipy==1.13.1          # 运动学 Savitzky-Golay 前端（scipy.signal.savgol_filter）
+# torchaudio 可选：common.video_to_wav 已强制产出 PCM WAV，无 torchaudio 时回退
+# 标准库 wave 读取，故非必须；如需用 torchaudio 后端再装：
+# torchaudio==2.4.1
+
+# ── [MODELS] 预训练骨干（CLIP / wav2vec2）与唇点检测 ───────────────────────
+transformers==4.44.2   # CLIPModel / CLIPImageProcessor / Wav2Vec2Model
+mediapipe==0.10.14     # FaceLandmarker Tasks API（必须 >=0.10；旧 legacy API 已删）
+opencv-python-headless==4.10.0.84   # cv2：视频帧读取（headless 无 GUI 依赖，适合服务器）
+
+# ── [PLOT] 仅出图（F1–F16），训练/抽取不需要 ───────────────────────────────
+matplotlib==3.9.2
+scikit-learn==1.5.1    # 可选：F15 的 t-SNE；缺失时 plot_figures 走纯 NumPy PCA 回退
+
+# ── [DEPRECATED-ONLY] 仅 extract_features.py（已废弃，禁止运行）─────────────
+# moviepy==1.0.3
